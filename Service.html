@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صفحة الإدارة</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>إدارة المستخدمين</h1>
+
+    <div class="form-group">
+        <label for="userPage">اسم صفحة المستخدم (مثل a12345.html):</label>
+        <input type="text" id="userPage" placeholder="أدخل اسم صفحة المستخدم">
+    </div>
+
+    <div class="form-group">
+        <label for="amountToSend">المبلغ للإرسال:</label>
+        <input type="number" id="amountToSend" placeholder="أدخل المبلغ" min="1">
+        <button onclick="sendMoney()">إرسال المال</button>
+    </div>
+
+    <div class="form-group">
+        <label for="amountToWithdraw">المبلغ للسحب:</label>
+        <input type="number" id="amountToWithdraw" placeholder="أدخل المبلغ" min="1">
+        <button onclick="withdrawMoney()">سحب المال</button>
+    </div>
+
+    <div class="form-group">
+        <label for="checkBalancePage">فحص رصيد صفحة المستخدم:</label>
+        <button onclick="checkBalance()">فحص الرصيد</button>
+    </div>
+    <div class="result" id="result"></div>
+
+    <script>
+        async function checkBalance() {
+            const userPage = document.getElementById('userPage').value;
+            if (!userPage) {
+                alert('يرجى إدخال اسم صفحة المستخدم.');
+                return;
+            }
+
+            try {
+                const response = await fetch(userPage);
+                if (!response.ok) throw new Error('فشل في جلب البيانات.');
+                const text = await response.text();
+
+                const balanceMatch = text.match(/رصيدك الحالي: (\d+(\.\d+)?)€/);
+                const nameMatch = text.match(/اسم المستخدم: (.+)/);
+                
+                if (balanceMatch && nameMatch) {
+                    document.getElementById('result').innerHTML = `
+                        اسم المستخدم: ${nameMatch[1]}<br>
+                        رصيد المستخدم: ${balanceMatch[1]}€
+                    `;
+                } else {
+                    document.getElementById('result').textContent = 'لم يتم العثور على البيانات.';
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'حدث خطأ: ' + error.message;
+            }
+        }
+
+        function sendMoney() {
+            const userPage = document.getElementById('userPage').value;
+            const amount = parseFloat(document.getElementById('amountToSend').value);
+            if (!userPage || isNaN(amount) || amount <= 0) {
+                alert('يرجى إدخال اسم صفحة المستخدم والمبلغ الصحيح.');
+                return;
+            }
+
+            localStorage.setItem('amountToSend', amount);
+            localStorage.setItem('userPage', userPage);
+
+            alert('تم تحديد المبلغ للإرسال.');
+        }
+
+        function withdrawMoney() {
+            const userPage = document.getElementById('userPage').value;
+            const amount = parseFloat(document.getElementById('amountToWithdraw').value);
+            if (!userPage || isNaN(amount) || amount <= 0) {
+                alert('يرجى إدخال اسم صفحة المستخدم والمبلغ الصحيح.');
+                return;
+            }
+
+            localStorage.setItem('amountToWithdraw', amount);
+            localStorage.setItem('userPage', userPage);
+
+            alert('تم تحديد المبلغ للسحب.');
+        }
+    </script>
+</body>
+</html>
